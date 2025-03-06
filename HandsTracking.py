@@ -17,7 +17,7 @@ while True:
 """
 
 #create our video object firstly
-cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION) #Use our webcamera #1 (default)
+cap = cv2.VideoCapture(0) #Use our webcamera #1 (default)
 
 mpHands = mp.solutions.hands
 hands = mpHands.Hands() #should involve some parameters static_image_mode, max_num_hands, model_complexity, min_detection_confidence, min_tracking_confidence
@@ -48,7 +48,7 @@ while True:
     fps = 1/(current_Time - pTime) # to calculate fps current - previous (time)
     pTime = current_Time
 
-    cv2.putText(img, str(int(fps)), (10,70), cv2.FONT_HERSHEY_PLAIN, 3, (255,0,255),3)
+    cv2.putText(img, f"FPS: {int(fps)}", (10,70), cv2.FONT_HERSHEY_PLAIN, 3, (255,0,255),3)
 
     cv2.imshow("Image", img)
     cv2.waitKey(1)
