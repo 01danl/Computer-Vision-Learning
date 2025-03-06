@@ -1,74 +1,58 @@
 import cv2
-import mediapipe as mp
 import time
+import mediapipe as mp
 
-class PoseDetector():
-    def __init__(self, mode=False, complexity=1, sm_lm = True, en_seg=True, sm_seg=True, min_det_conf=0.5, min_track_conf=0.5):
+#create our video object firstly
+
+class HandDetector():
+    def __init__(self, mode=False, maxHands = 2, detectionConf = 0.5, trackConf = 0.5):
         self.mode = mode
-        self.complexity = complexity
-        self.sm_lm = sm_lm
-        self.en_seg = en_seg
-        self.sm_seg = sm_seg
-        self.min_det_conf = min_det_conf
-        self.min_track_conf = min_track_conf
+        self.maxHands = maxHands
+        self.detectionConf = detectionConf
+        self.trackConf = trackConf
 
+        self.mpHands = mp.solutions.hands
+        self.hands = self.mpHands.Hands(
+            static_image_mode=self.mode,
+            max_num_hands=self.maxHands,
+            min_detection_confidence=self.detectionConf,
+            min_tracking_confidence=self.trackConf
+        )  # should involve some parameters static_image_mode, max_num_hands, model_complexity, min_detection_confidence, min_tracking_confidence
         self.mpDraw = mp.solutions.drawing_utils
-        self.mpPose = mp.solutions.pose
-        self.pose = self.mpPose.Pose(self.mode, self.complexity, self.sm_lm, self.en_seg, self.sm_seg)
 
-    def findPose(self, img, draw=True):
-        imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        self.results = self.pose.process(imgRGB)
-        if self.results.pose_landmarks:
-            if draw:
-                for poseLMS in self.results.pose_landmarks.landmark:
-                    h, w, c = img.shape
-                    cx, cy = int(poseLMS.x * w), int(poseLMS.y * h)
-                    size = 15
-                    cv2.rectangle(img, (cx - size, cy - size), (cx + size, cy + size), (0, 255, 0), 2)
+    def findHands(self, img, draw=True):
+        imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # rgb - color
+        results = self.hands.process(imgRGB)
 
-                self.mpDraw.draw_landmarks(img, self.results.pose_landmarks, self.mpPose.POSE_CONNECTIONS,
-                                      self.mpDraw.DrawingSpec(color=(20, 220, 53), thickness=3),
-                                      self.mpDraw.DrawingSpec(color=(255, 0, 255), thickness=5)
-                                      )
-
-
-       # for id, lm in enumerate(results.pose_landmarks.landmark):
-           # a,b,c = img.shape
-           # c1, c2 = int(lm.x * a), int(lm.y * b)
-           # cv2.circle(img, (c1, c2), 25, (255, 0, 0), cv2.FILLED)
-        return img
-    def getPosition(self, img, draw=True):
-        res = []
-        if self.results.pose_landmarks:
-            for id, lm in enumerate(self.results.pose_landmarks.landmark):
-                h,w,c = img.shape
-
-                cx, cy = int(lm.x * w), int(lm.y * h)
-                res.append([id, cx, cy])
+        if results.multi_hand_landmarks:
+            for handLms in results.multi_hand_landmarks:
                 if draw:
-                    cv2.circle(img, (cx, cy), 5, (255, 0, 0), cv2.FILLED)
-        return res
+                    self.mpDraw.draw_landmarks(
+                        img, handLms, self.mpHands.HAND_CONNECTIONS,
+                        self.mpDraw.DrawingSpec(color=(0, 0, 255), thickness=3, circle_radius=4),
+                        self.mpDraw.DrawingSpec(color=(0, 0, 255), thickness=3)
+                    )
+        return img
+
+
 def main():
     pTime = 0
-    cTime = 0
-    cap = cv2.VideoCapture(0)
-    detector = PoseDetector()
-
+    current_Time = 0
+    cap = cv2.VideoCapture(0, cv2.CAP_ANY)
+    detector = HandDetector()
     while True:
         success, img = cap.read()
-        img = detector.findPose(img)
-        res = detector.getPosition(img)
-        print(res)
+        img = detector.findHands(img)
 
-        cv2.imshow("Pose tracking", img)
+        current_Time = time.time()
+        fps = 1 / (current_Time - pTime)  # to calculate fps current - previous (time)
+        pTime = current_Time
+
+        cv2.putText(img, f"FPS: {int(fps)}", (10, 70), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 255), 3)
+
+        cv2.imshow("Image", img)
         cv2.waitKey(1)
-        cTime = time.time()
-        fps = 1 / (cTime - pTime)
-        pTime = cTime
-
-        cv2.putText(img, str(int(fps)), (70, 50), cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255), 2)
 
 
-if __name__ == "__main__":
+if __name__== "__main__": # if we running this script
     main()
