@@ -20,6 +20,6 @@ In this repository, we will explore **small projects and real-world applications
 3. **Pose Estimation** – Detect human body keypoints with **MediaPipe Pose**.
 ![Screenshot 2025-03-08 at 3 55 32 AM](https://github.com/user-attachments/assets/4906dbdc-6269-49ad-83c6-4c04febf7b2c)
 
-#Object Detection with YOLO
+***Object Detection with YOLO***
 ![Screenshot 2025-03-08 at 3 58 13 AM](https://github.com/user-attachments/assets/b8f8db3a-f9e4-4174-ac8d-fa8046580528)
 
